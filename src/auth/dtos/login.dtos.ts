@@ -9,5 +9,5 @@ export class LoginDto {
 
     @ApiProperty({ example: '123456', description: 'Senha do usuário' })
     @IsString()
-    senha: string
+    password: string
 }

@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
 import { AuthGuard } from './auth.guard';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
@@ -17,11 +17,11 @@ export class AuthController {
         return await this.authService.login(data);
     }
 
-    // @Post('verify')
-    // @ApiOperation({ summary: 'Verifica o código de verificação' })
-    // async verify(@Body() data) {
-    //     return await this.authService.verifyCode(data.email, data.code);
-    // }
+    @Post('verify')
+    @ApiOperation({ summary: 'Verifica o código de verificação' })
+    async verifyCode(@Body() email: string) {
+        return await this.authService.verifyCode(email);
+    }
 
     @Get('me')
     @ApiOperation({ summary: 'Retorna o usuário logado' })

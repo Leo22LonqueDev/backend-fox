@@ -1,4 +1,4 @@
-import { HttpException, Injectable } from '@nestjs/common';
+import { Body, HttpException, Injectable } from '@nestjs/common';
 import * as jwt from 'jsonwebtoken';
 import * as bcrypt from 'bcrypt';
 // import * as nodemailer from 'nodemailer';
@@ -40,40 +40,34 @@ export class AuthService {
     //     });
     // }
 
-    // async verifyCode(email: string, code: string) {
-    //     const codeObj = await this.codeModel.findOne({
-    //         email,
-    //         code
-    //     });
-    //     if (!codeObj) {
-    //         throw new Error('Código inválido');
-    //     }
-    //     if (new Date().getTime() - codeObj.createdAt.getTime() > 1000 * 60 * 10) {
-    //         throw new Error('Código expirado');
-    //     }
-    //     const user = await this.userModel.findOne({ email }).lean();
-    //     if (!user) {
-    //         throw new Error('Usuário não encontrado');
-    //     }
-    //     await this.codeModel.deleteMany({ email });
-    //     return jwt.sign({ ...user, senha: null, id: user._id }, SECRET, { expiresIn: '4h' });
-    // }
+    async verifyCode(email: {}) {
+        const user = await this.userModel.findOne(email);
+        if (!user) {
+            throw new Error('Usuário não encontrado');
+        }
+        await this.codeModel.deleteMany(email
+        );
+        return jwt.sign({ ...user.toObject(), senha: null, id: user._id }, SECRET, { expiresIn: '12h' });
+    }
 
     async login(loginDto: LoginDto) {
-        console.log(loginDto);
-        
         const user = await this.userModel.findOne({
             email: loginDto.email
         });
         if (!user) {
             throw new HttpException('Usuário não encontrado', 401);
         }
-        const isPasswordValid = await bcrypt.compare(loginDto.senha, user.password);
+        const isPasswordValid = await bcrypt.compare(loginDto.password, user.password);
         if (!isPasswordValid) {
             throw new HttpException('Senha inválida', 401);
         }
+        if (user.inativo) {
+            throw new HttpException(`Usuario inativo`, 422)
+        }
 
-        return { status: 200, message: 'Sucesso ao efetuar login!' };
+        const token = jwt.sign({ username: user.nome, email: loginDto.email }, SECRET, { expiresIn: '12h' })
+
+        return { status: 200, message: 'Sucesso ao efetuar login!', token: token, email: user.email };
     }
 
     async validateUser(token: string) {
@@ -92,4 +86,14 @@ export class AuthService {
     async createJwt(user: any) {
         return jwt.sign(user, SECRET)
     }
+
+    async logout() {
+        try {
+            localStorage.clearCookie('token')
+            return { status: 200, message: 'Deslogado com sucesso!' }
+        } catch (error) {
+            throw new HttpException('Problem to logout', 401);
+        }
+    }
+
 }
