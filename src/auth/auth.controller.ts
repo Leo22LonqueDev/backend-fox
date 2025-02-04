@@ -17,6 +17,12 @@ export class AuthController {
         return await this.authService.login(data);
     }
 
+    @Post('logout')
+    @ApiOperation({ summary: 'Realiza o logout' })
+    async logout() {
+        return await this.authService.logout();
+    }
+
     @Post('verify')
     @ApiOperation({ summary: 'Verifica o código de verificação' })
     async verifyCode(@Body() email: string) {

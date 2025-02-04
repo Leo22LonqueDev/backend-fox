@@ -89,7 +89,6 @@ export class AuthService {
 
     async logout() {
         try {
-            localStorage.clearCookie('token')
             return { status: 200, message: 'Deslogado com sucesso!' }
         } catch (error) {
             throw new HttpException('Problem to logout', 401);
